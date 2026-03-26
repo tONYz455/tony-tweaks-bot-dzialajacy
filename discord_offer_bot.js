@@ -657,15 +657,16 @@ client.on('interactionCreate', async (interaction) => {
         });
       }
 
-      if (interaction.commandName === 'kanal-ustaw') {
+            if (interaction.commandName === 'kanal-ustaw') {
+        await interaction.deferReply({ ephemeral: true });
+
         const channel = interaction.options.getChannel('kanal', true);
         const emoji = interaction.options.getString('emoji') ?? '';
         const newBaseName = interaction.options.getString('nazwa') ?? '';
 
         if (!isSupportedRenameChannel(channel)) {
-          return safeReply(interaction, {
+          return interaction.editReply({
             content: getLang('pl').unsupportedChannel,
-            ephemeral: true,
           });
         }
 
@@ -673,21 +674,20 @@ client.on('interactionCreate', async (interaction) => {
 
         try {
           await channel.setName(newName);
+
+          return interaction.editReply({
+            content: `✅ Ustawiono kanał na: **${newName}**`,
+          });
         } catch (err) {
           console.error('Błąd setName kanal-ustaw:', err);
-          return safeReply(interaction, {
+
+          return interaction.editReply({
             content: getLang('pl').renameFailed,
-            ephemeral: true,
           });
         }
-
-        return safeReply(interaction, {
-          content: `✅ Ustawiono kanał na: **${newName}**`,
-          ephemeral: true,
-        });
       }
     }
-}
+
     if (interaction.isButton()) {
       if (interaction.customId === 'send_offer_pl') {
         return safeReply(interaction, {
@@ -743,5 +743,3 @@ client.on('interactionCreate', async (interaction) => {
     }
   }
 });
-
-client.login(config.token);
