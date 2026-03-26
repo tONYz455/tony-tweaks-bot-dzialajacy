@@ -593,28 +593,34 @@ client.on('interactionCreate', async (interaction) => {
         return closeTicket(interaction, 'en');
       }
 
-      if (interaction.commandName === 'kanal-emoji') {
-        const channel = interaction.options.getChannel('kanal', true);
-        const emoji = interaction.options.getString('emoji', true);
+     if (interaction.commandName === 'kanal-emoji') {
+  await interaction.deferReply({ ephemeral: true });
 
-        if (!isSupportedRenameChannel(channel)) {
-          return safeReply(interaction, {
-            content: getLang('pl').unsupportedChannel,
-            ephemeral: true,
-          });
-        }
+  const channel = interaction.options.getChannel('kanal', true);
+  const emoji = interaction.options.getString('emoji', true);
 
-        const newName = buildSafeChannelName(emoji, '');
+  if (!isSupportedRenameChannel(channel)) {
+    return interaction.editReply({
+      content: getLang('pl').unsupportedChannel,
+    });
+  }
 
-        try {
-          await channel.setName(newName);
-        } catch (err) {
-          console.error('Błąd setName kanal-emoji:', err);
-          return safeReply(interaction, {
-            content: getLang('pl').renameFailed,
-            ephemeral: true,
-          });
-        }
+  const newName = buildSafeChannelName(emoji, '');
+
+  try {
+    await channel.setName(newName);
+
+    return interaction.editReply({
+      content: `✅ Zmieniono nazwę kanału na: **${newName}**`,
+    });
+  } catch (err) {
+    console.error('Błąd setName kanal-emoji:', err);
+
+    return interaction.editReply({
+      content: getLang('pl').renameFailed,
+    });
+  }
+}
 
         return safeReply(interaction, {
           content: `✅ Zmieniono nazwę kanału na: **${newName}**`,
