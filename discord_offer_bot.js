@@ -687,7 +687,7 @@ client.on('interactionCreate', async (interaction) => {
         });
       }
     }
-
+}
     if (interaction.isButton()) {
       if (interaction.customId === 'send_offer_pl') {
         return safeReply(interaction, {
