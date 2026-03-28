@@ -12,13 +12,18 @@ import {
   SlashCommandBuilder,
 } from 'discord.js';
 
+// =========================
+// KONFIGURACJA
+// =========================
 const config = {
   token: process.env.TOKEN,
   clientId: '1486515350806859786',
-  guildId: '409188722640945192',
+  guildId: '1409188722640945192',
+
   supportRoleId: '1409194225844621322',
   ticketCategoryId: '1486526374674956348',
   ticketLogChannelId: 'WSTAW_TUTAJ_ID_KANALU_LOGOW',
+
   defaultLanguage: 'pl',
 };
 
@@ -134,10 +139,11 @@ function buildOfferEmbed(guild, langKey) {
       .setFooter({ text: guild?.name || 'Serwer' });
   }
 
-  return new EmbedBuilder()
-    .setColor(0x2b2d31)
-    .setTitle('📦 Optimization / Tweaks Pack')
-    .setDescription(
+  if (langKey === 'en') {
+    return new EmbedBuilder()
+      .setColor(0x2b2d31)
+      .setTitle('📦 Optimization / Tweaks Pack')
+      .setDescription(
 `💸 **Price:**
 • 5€ / ~5.5$
 
@@ -176,10 +182,37 @@ function buildOfferEmbed(guild, langKey) {
 • More FPS
 • Less lag
 • Better performance`
-    )
+      )
+      .setFooter({ text: guild?.name || 'Server' });
+  }
+
+  return new EmbedBuilder()
+    .setColor(0x2b2d31)
+    .setTitle('📦 Tweaks Pack')
+    .setDescription('Brak wybranego języka.')
     .setFooter({ text: guild?.name || 'Server' });
 }
+function buildShaderEmbed(guild, langKey) {
+  return new EmbedBuilder()
+    .setColor(0x2b2d31)
+    .setTitle('🔥 GTA 5 NEXT-GEN GRAPHICS PACK')
+    .setDescription(`Tired of outdated GTA 5 graphics?
 
+💎 What you get:
+• realistic lighting  
+• cinematic visuals  
+• improved shadows & colors  
+• ultra-realistic vibe  
+• optimized performance  
+
+📦 Included:
+✔ shader preset  
+✔ settings  
+✔ guide  
+
+💰 Price: 50 PLN`)
+    .setFooter({ text: guild?.name || 'Server' });
+}
 function buildLanguageButtons() {
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
@@ -221,6 +254,23 @@ function sanitizeChannelName(name) {
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '')
     .slice(0, 90);
+}
+
+function splitChannelName(channelName) {
+  const safe = String(channelName ?? '').trim();
+  const match = safe.match(/^(\S+)\s*[・\-]\s*(.+)$/);
+
+  if (match) {
+    return {
+      emoji: match[1],
+      baseName: match[2].trim(),
+    };
+  }
+
+  return {
+    emoji: null,
+    baseName: safe,
+  };
 }
 
 function isSupportedRenameChannel(channel) {
@@ -339,6 +389,12 @@ async function registerCommands() {
           .setRequired(false)
       )
       .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageChannels),
+	  
+	  new SlashCommandBuilder()
+    .setName('shader')
+    .setDescription('Sends shader offer')
+    .setDefaultMemberPermissions(PermissionsBitField.Flags.Administrator),
+	
   ].map(cmd => cmd.toJSON());
 
   const rest = new REST({ version: '10' }).setToken(config.token);
@@ -535,7 +591,33 @@ client.on('interactionCreate', async (interaction) => {
           ephemeral: true,
         });
       }
+// ~570
+if (interaction.commandName === 'offer') {
+   // kod
+}
 
+// 🔥 LINIA 588 — TU WKLEJ
+if (interaction.commandName === 'shader') {
+    if (!interaction.channel || !interaction.channel.isTextBased()) {
+        return safeReply(interaction, {
+            content: 'This command only works in a text channel.',
+            ephemeral: true,
+        });
+    }
+
+    await interaction.channel.send({
+        embeds: [buildShaderEmbed(interaction.guild, 'en')],
+        components: [buildTicketButtons('en')],
+    });
+
+    return safeReply(interaction, {
+        content: 'Shader panel sent.',
+        ephemeral: true,
+    });
+}
+
+// ~589
+if (interaction.commandName === 'panel') {
       if (interaction.commandName === 'panel') {
         if (!interaction.channel || !interaction.channel.isTextBased()) {
           return safeReply(interaction, {
@@ -564,14 +646,13 @@ client.on('interactionCreate', async (interaction) => {
       }
 
       if (interaction.commandName === 'kanal-emoji') {
-        await interaction.deferReply({ ephemeral: true });
-
         const channel = interaction.options.getChannel('kanal', true);
         const emoji = interaction.options.getString('emoji', true);
 
         if (!isSupportedRenameChannel(channel)) {
-          return interaction.editReply({
+          return safeReply(interaction, {
             content: getLang('pl').unsupportedChannel,
+            ephemeral: true,
           });
         }
 
@@ -579,26 +660,28 @@ client.on('interactionCreate', async (interaction) => {
 
         try {
           await channel.setName(newName);
-          return interaction.editReply({
-            content: `✅ Zmieniono nazwę kanału na: **${newName}**`,
-          });
         } catch (err) {
           console.error('Błąd setName kanal-emoji:', err);
-          return interaction.editReply({
+          return safeReply(interaction, {
             content: getLang('pl').renameFailed,
+            ephemeral: true,
           });
         }
+
+        return safeReply(interaction, {
+          content: `✅ Zmieniono nazwę kanału na: **${newName}**`,
+          ephemeral: true,
+        });
       }
 
       if (interaction.commandName === 'kanal-nazwa') {
-        await interaction.deferReply({ ephemeral: true });
-
         const channel = interaction.options.getChannel('kanal', true);
         const newBaseName = interaction.options.getString('nazwa', true);
 
         if (!isSupportedRenameChannel(channel)) {
-          return interaction.editReply({
+          return safeReply(interaction, {
             content: getLang('pl').unsupportedChannel,
+            ephemeral: true,
           });
         }
 
@@ -606,27 +689,29 @@ client.on('interactionCreate', async (interaction) => {
 
         try {
           await channel.setName(newName);
-          return interaction.editReply({
-            content: `✅ Zmieniono nazwę kanału na: **${newName}**`,
-          });
         } catch (err) {
           console.error('Błąd setName kanal-nazwa:', err);
-          return interaction.editReply({
+          return safeReply(interaction, {
             content: getLang('pl').renameFailed,
+            ephemeral: true,
           });
         }
+
+        return safeReply(interaction, {
+          content: `✅ Zmieniono nazwę kanału na: **${newName}**`,
+          ephemeral: true,
+        });
       }
 
       if (interaction.commandName === 'kanal-ustaw') {
-        await interaction.deferReply({ ephemeral: true });
-
         const channel = interaction.options.getChannel('kanal', true);
         const emoji = interaction.options.getString('emoji') ?? '';
         const newBaseName = interaction.options.getString('nazwa') ?? '';
 
         if (!isSupportedRenameChannel(channel)) {
-          return interaction.editReply({
+          return safeReply(interaction, {
             content: getLang('pl').unsupportedChannel,
+            ephemeral: true,
           });
         }
 
@@ -634,15 +719,18 @@ client.on('interactionCreate', async (interaction) => {
 
         try {
           await channel.setName(newName);
-          return interaction.editReply({
-            content: `✅ Ustawiono kanał na: **${newName}**`,
-          });
         } catch (err) {
           console.error('Błąd setName kanal-ustaw:', err);
-          return interaction.editReply({
+          return safeReply(interaction, {
             content: getLang('pl').renameFailed,
+            ephemeral: true,
           });
         }
+
+        return safeReply(interaction, {
+          content: `✅ Ustawiono kanał na: **${newName}**`,
+          ephemeral: true,
+        });
       }
     }
 
