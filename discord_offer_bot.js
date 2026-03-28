@@ -553,7 +553,13 @@ client.once('ready', async () => {
 
 client.on('interactionCreate', async (interaction) => {
   try {
+
+    // =====================
+    // KOMENDY SLASH
+    // =====================
     if (interaction.isChatInputCommand()) {
+
+      // ===== OFERTA PL =====
       if (interaction.commandName === 'oferta') {
         if (!interaction.channel || !interaction.channel.isTextBased()) {
           return safeReply(interaction, {
@@ -573,6 +579,7 @@ client.on('interactionCreate', async (interaction) => {
         });
       }
 
+      // ===== OFERTA EN =====
       if (interaction.commandName === 'offer') {
         if (!interaction.channel || !interaction.channel.isTextBased()) {
           return safeReply(interaction, {
@@ -591,33 +598,28 @@ client.on('interactionCreate', async (interaction) => {
           ephemeral: true,
         });
       }
-// ~570
-if (interaction.commandName === 'offer') {
-   // kod
-}
 
-// 🔥 LINIA 588 — TU WKLEJ
-if (interaction.commandName === 'shader') {
-    if (!interaction.channel || !interaction.channel.isTextBased()) {
-        return safeReply(interaction, {
+      // ===== SHADER =====
+      if (interaction.commandName === 'shader') {
+        if (!interaction.channel || !interaction.channel.isTextBased()) {
+          return safeReply(interaction, {
             content: 'This command only works in a text channel.',
             ephemeral: true,
+          });
+        }
+
+        await interaction.channel.send({
+          embeds: [buildShaderEmbed(interaction.guild, 'en')],
+          components: [buildTicketButtons('en')],
         });
-    }
 
-    await interaction.channel.send({
-        embeds: [buildShaderEmbed(interaction.guild, 'en')],
-        components: [buildTicketButtons('en')],
-    });
+        return safeReply(interaction, {
+          content: 'Shader panel sent.',
+          ephemeral: true,
+        });
+      }
 
-    return safeReply(interaction, {
-        content: 'Shader panel sent.',
-        ephemeral: true,
-    });
-}
-
-// ~589
-if (interaction.commandName === 'panel') {
+      // ===== PANEL =====
       if (interaction.commandName === 'panel') {
         if (!interaction.channel || !interaction.channel.isTextBased()) {
           return safeReply(interaction, {
@@ -637,6 +639,7 @@ if (interaction.commandName === 'panel') {
         });
       }
 
+      // ===== ZAMKNIJ =====
       if (interaction.commandName === 'zamknij') {
         return closeTicket(interaction, 'pl');
       }
@@ -645,6 +648,7 @@ if (interaction.commandName === 'panel') {
         return closeTicket(interaction, 'en');
       }
 
+      // ===== KANAL EMOJI =====
       if (interaction.commandName === 'kanal-emoji') {
         const channel = interaction.options.getChannel('kanal', true);
         const emoji = interaction.options.getString('emoji', true);
@@ -674,6 +678,7 @@ if (interaction.commandName === 'panel') {
         });
       }
 
+      // ===== KANAL NAZWA =====
       if (interaction.commandName === 'kanal-nazwa') {
         const channel = interaction.options.getChannel('kanal', true);
         const newBaseName = interaction.options.getString('nazwa', true);
@@ -703,6 +708,7 @@ if (interaction.commandName === 'panel') {
         });
       }
 
+      // ===== KANAL USTAW =====
       if (interaction.commandName === 'kanal-ustaw') {
         const channel = interaction.options.getChannel('kanal', true);
         const emoji = interaction.options.getString('emoji') ?? '';
@@ -732,9 +738,14 @@ if (interaction.commandName === 'panel') {
           ephemeral: true,
         });
       }
-    }
 
+    } // 🔥 WAŻNE zamknięcie
+
+    // =====================
+    // BUTTONY
+    // =====================
     if (interaction.isButton()) {
+
       if (interaction.customId === 'send_offer_pl') {
         return safeReply(interaction, {
           embeds: [buildOfferEmbed(interaction.guild, 'pl')],
@@ -766,7 +777,8 @@ if (interaction.commandName === 'panel') {
       if (interaction.customId === 'close_ticket_en') {
         return closeTicket(interaction, 'en');
       }
-	
+    }
+
   } catch (error) {
     console.error('Global interaction error:', error);
 
@@ -789,5 +801,4 @@ if (interaction.commandName === 'panel') {
     }
   }
 });
-
 client.login(config.token);
