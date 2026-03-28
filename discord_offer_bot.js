@@ -766,7 +766,6 @@ if (interaction.commandName === 'panel') {
       if (interaction.customId === 'close_ticket_en') {
         return closeTicket(interaction, 'en');
       }
-    }
   } catch (error) {
     console.error('Global interaction error:', error);
 
