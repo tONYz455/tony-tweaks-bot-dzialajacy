@@ -592,373 +592,108 @@ client.once('ready', async () => {
 client.on('interactionCreate', async (interaction) => {
   try {
 
-    // =====================
-    // KOMENDY SLASH
-    // =====================
-    if (interaction.isChatInputCommand()) 
-		
-		if (interaction.commandName === 'feedback') {
-  await interaction.channel.send({
-    embeds: [buildFeedbackEmbed()],
-    components: buildFeedbackButtons(),
-  });
+    if (interaction.isChatInputCommand()) {
 
-  return safeReply(interaction, {
-    content: 'Feedback panel sent!',
-    ephemeral: true,
-  });
-}
-	  
-      // ===== OFERTA PL =====
+      if (interaction.commandName === 'feedback') {
+        await interaction.channel.send({
+          embeds: [buildFeedbackEmbed()],
+          components: buildFeedbackButtons(),
+        });
+
+        return safeReply(interaction, {
+          content: 'Feedback panel sent!',
+          ephemeral: true,
+        });
+      }
+
       if (interaction.commandName === 'oferta') {
-        if (!interaction.channel || !interaction.channel.isTextBased()) {
-          return safeReply(interaction, {
-            content: 'Ta komenda działa tylko na kanale tekstowym.',
-            ephemeral: true,
-          });
-        }
-
         await interaction.channel.send({
           embeds: [buildOfferEmbed(interaction.guild, 'pl')],
           components: [buildTicketButtons('pl')],
         });
 
         return safeReply(interaction, {
-          content: getLang('pl').offerSent,
+          content: 'Oferta wysłana!',
           ephemeral: true,
         });
       }
 
-      // ===== OFERTA EN =====
       if (interaction.commandName === 'offer') {
-        if (!interaction.channel || !interaction.channel.isTextBased()) {
-          return safeReply(interaction, {
-            content: 'This command only works in a text channel.',
-            ephemeral: true,
-          });
-        }
-
         await interaction.channel.send({
           embeds: [buildOfferEmbed(interaction.guild, 'en')],
           components: [buildTicketButtons('en')],
         });
 
         return safeReply(interaction, {
-          content: getLang('en').offerSent,
+          content: 'Offer sent!',
           ephemeral: true,
         });
       }
 
-      // ===== SHADER =====
       if (interaction.commandName === 'shader') {
-        if (!interaction.channel || !interaction.channel.isTextBased()) {
-          return safeReply(interaction, {
-            content: 'This command only works in a text channel.',
-            ephemeral: true,
-          });
-        }
-
         await interaction.channel.send({
           embeds: [buildShaderEmbed(interaction.guild, 'en')],
           components: [buildTicketButtons('en')],
         });
 
         return safeReply(interaction, {
-          content: 'Shader panel sent.',
+          content: 'Shader panel sent!',
           ephemeral: true,
         });
       }
 
-      // ===== PANEL =====
       if (interaction.commandName === 'panel') {
-        if (!interaction.channel || !interaction.channel.isTextBased()) {
-          return safeReply(interaction, {
-            content: 'Ta komenda działa tylko na kanale tekstowym.',
-            ephemeral: true,
-          });
-        }
-
         await interaction.channel.send({
-          content: 'Wybierz język panelu / Choose panel language:',
+          content: 'Choose language:',
           components: [buildLanguageButtons()],
         });
 
         return safeReply(interaction, {
-          content: getLang('pl').panelSent,
+          content: 'Panel sent!',
           ephemeral: true,
         });
       }
 
-      // ===== ZAMKNIJ =====
-      if (interaction.commandName === 'zamknij') {
-        return closeTicket(interaction, 'pl');
-      }
+    }
 
-      if (interaction.commandName === 'close') {
-        return closeTicket(interaction, 'en');
-      }
+    if (interaction.isButton()) {
 
-      // ===== KANAL EMOJI =====
-      if (interaction.commandName === 'kanal-emoji') {
-        const channel = interaction.options.getChannel('kanal', true);
-        const emoji = interaction.options.getString('emoji', true);
-
-        if (!isSupportedRenameChannel(channel)) {
-          return safeReply(interaction, {
-            content: getLang('pl').unsupportedChannel,
-            ephemeral: true,
-          });
-        }
-
-        const newName = buildSafeChannelName(emoji, '');
-
-        try {
-          await channel.setName(newName);
-        } catch (err) {
-          console.error('Błąd setName kanal-emoji:', err);
-          return safeReply(interaction, {
-            content: getLang('pl').renameFailed,
-            ephemeral: true,
-          });
-        }
-
-        return safeReply(interaction, {
-          content: `✅ Zmieniono nazwę kanału na: **${newName}**`,
+      if (interaction.customId === 'feedback_open') {
+        return interaction.reply({
+          content: '⭐ Rate:',
+          components: buildFeedbackButtons(),
           ephemeral: true,
         });
       }
 
-      // ===== KANAL NAZWA =====
-      if (interaction.commandName === 'kanal-nazwa') {
-        const channel = interaction.options.getChannel('kanal', true);
-        const newBaseName = interaction.options.getString('nazwa', true);
+      if (interaction.customId.startsWith('star_')) {
+        const rating = interaction.customId.split('_')[1];
 
-        if (!isSupportedRenameChannel(channel)) {
-          return safeReply(interaction, {
-            content: getLang('pl').unsupportedChannel,
-            ephemeral: true,
-          });
+        const ch = interaction.guild.channels.cache.find(c => c.name === 'feedback');
+
+        if (ch) {
+          ch.send(`⭐ ${interaction.user} rated ${rating}/5`);
         }
 
-        const newName = buildSafeChannelName('', newBaseName);
-
-        try {
-          await channel.setName(newName);
-        } catch (err) {
-          console.error('Błąd setName kanal-nazwa:', err);
-          return safeReply(interaction, {
-            content: getLang('pl').renameFailed,
-            ephemeral: true,
-          });
-        }
-
-        return safeReply(interaction, {
-          content: `✅ Zmieniono nazwę kanału na: **${newName}**`,
+        return interaction.reply({
+          content: `Thanks ${rating}⭐`,
           ephemeral: true,
         });
       }
 
-      // ===== KANAL USTAW =====
-      if (interaction.commandName === 'kanal-ustaw') {
-        const channel = interaction.options.getChannel('kanal', true);
-        const emoji = interaction.options.getString('emoji') ?? '';
-        const newBaseName = interaction.options.getString('nazwa') ?? '';
+    }
 
-        if (!isSupportedRenameChannel(channel)) {
-          return safeReply(interaction, {
-            content: getLang('pl').unsupportedChannel,
-            ephemeral: true,
-          });
-        }
-
-        const newName = buildSafeChannelName(emoji, newBaseName);
-
-        try {
-          await channel.setName(newName);
-        } catch (err) {
-          console.error('Błąd setName kanal-ustaw:', err);
-          return safeReply(interaction, {
-            content: getLang('pl').renameFailed,
-            ephemeral: true,
-          });
-        }
-
-          return safeReply(interaction, {
-    content: `✅ Ustawiono kanał na: **${newName}**`,
-    ephemeral: true,
-  });
-} // koniec if kanal-ustaw
-
-if (interaction.isChatInputCommand()) {
-   
-} // zamykasz if
-
-if (interaction.isButton()) {
-   
-} // zamykasz buttony
-
-} // 🔥 DOPIERO TU zamykasz try
-
-catch (error) {
-
-		if (interaction.customId === 'feedback_open') {
-  await interaction.reply({
-    content: 'Select rating:',
-    components: [
-      {
-        type: 1,
-        components: [
-          { type: 2, label: '⭐', style: 1, custom_id: 'rate_1' },
-          { type: 2, label: '⭐⭐', style: 1, custom_id: 'rate_2' },
-          { type: 2, label: '⭐⭐⭐', style: 1, custom_id: 'rate_3' },
-          { type: 2, label: '⭐⭐⭐⭐', style: 1, custom_id: 'rate_4' },
-          { type: 2, label: '⭐⭐⭐⭐⭐', style: 3, custom_id: 'rate_5' },
-        ],
-      },
-    ],
-    ephemeral: true,
-  });
-}
-
-		if (interaction.customId.startsWith('rate_')) {
-  const rating = interaction.customId.split('_')[1];
-
-  await interaction.reply({
-    content: `You selected ${rating}⭐\nNow write your feedback!`,
-    ephemeral: true,
-  });
-
-  const filter = m => m.author.id === interaction.user.id;
-
-  const collector = interaction.channel.createMessageCollector({
-    filter,
-    max: 1,
-    time: 60000,
-  });
-
-  collector.on('collect', async (msg) => {
-    const feedbackChannel = interaction.guild.channels.cache.find(
-      c => c.name === 'feedback'
-    );
-
-    if (!feedbackChannel) return;
-
-    const stars = '⭐'.repeat(rating);
-
-    await feedbackChannel.send({
-      embeds: [
-        {
-          title: '⭐ New Feedback',
-          description: msg.content,
-          color: 0x00ff99,
-          fields: [
-            { name: 'Rating', value: stars },
-          ],
-          footer: {
-            text: `Author: ${interaction.user.tag}`,
-          },
-        },
-      ],
-    });
-
-    await msg.reply('✅ Feedback sent!');
-  });
-}
-		
-      if (interaction.customId === 'send_offer_pl') {
-        return safeReply(interaction, {
-          embeds: [buildOfferEmbed(interaction.guild, 'pl')],
-          components: [buildTicketButtons('pl')],
-          ephemeral: true,
-        });
-      }
-
-      if (interaction.customId === 'send_offer_en') {
-        return safeReply(interaction, {
-          embeds: [buildOfferEmbed(interaction.guild, 'en')],
-          components: [buildTicketButtons('en')],
-          ephemeral: true,
-        });
-      }
-
-      if (interaction.customId === 'open_ticket_pl') {
-        return createTicket(interaction, 'pl');
-      }
-
-      if (interaction.customId === 'open_ticket_en') {
-        return createTicket(interaction, 'en');
-      }
-
-      if (interaction.customId === 'close_ticket_pl') {
-        return closeTicket(interaction, 'pl');
-      }
-
-      if (interaction.customId === 'close_ticket_en') {
-  return closeTicket(interaction, 'en');
-}
-
-} // koniec if (interaction.isButton())
-
-} // 🔥 BRAKUJĄCA KLAMRA (try)
-
-catch (error) {
-    console.error('Global interaction error:', error);
-
-    const fallback = getLang(config.defaultLanguage).genericError;
+  } catch (error) {
+    console.error(error);
 
     try {
       if (interaction.replied || interaction.deferred) {
-        await interaction.followUp({
-          content: fallback,
-          ephemeral: true,
-        });
+        await interaction.followUp({ content: 'Error', ephemeral: true });
       } else {
-        await interaction.reply({
-          content: fallback,
-          ephemeral: true,
-        });
+        await interaction.reply({ content: 'Error', ephemeral: true });
       }
-    } catch (replyError) {
-      console.error('Błąd przy wysyłaniu fallback reply:', replyError);
-    }
+    } catch {}
   }
 });
-        if (interaction.commandName === 'recent') {
-  const purchase = getRandomPurchase();
-
-  await interaction.channel.send({
-    embeds: [
-      {
-        title: '🛒 Recent Purchase',
-        description: `**${purchase.user}** bought **${purchase.item}**`,
-        color: 0x00ff99,
-        fields: [
-          { name: 'Price', value: purchase.price },
-        ],
-      },
-    ],
-  });
-
-  return safeReply(interaction, {
-    content: 'Sent!',
-    ephemeral: true,
-  });
-}
-
-setInterval(() => {
-  const channel = client.channels.cache.find(c => c.name === 'general');
-  if (!channel) return;
-
-  const purchase = getRandomPurchase();
-
-  channel.send({
-    embeds: [
-      {
-        description: `💸 **${purchase.user}** just bought **${purchase.item}** (${purchase.price})`,
-        color: 0x00ff99,
-      },
-    ],
-  });
-}, 3000000);
 
 client.login(config.token);
