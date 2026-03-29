@@ -37,7 +37,7 @@ const translations = {
     ticketAlreadyExists: 'Masz już otwarty ticket:',
     ticketOnlyText: 'To działa tylko na kanale tekstowym.',
     notTicket: 'Ten kanał nie wygląda na ticket.',
-    closingTicket: 'Zamykam ticket za 5 sekund...',
+    closingTicket: 'Zamykam ticket za 5 sekund',
     newTicket: 'Nowy Ticket',
     ticketIntro: 'Cześć {user}, opisz tutaj czego potrzebujesz.',
     sendBestInfo: 'Wyślij najlepiej od razu:',
@@ -59,7 +59,7 @@ const translations = {
     ticketAlreadyExists: 'You already have an open ticket:',
     ticketOnlyText: 'This only works in a text channel.',
     notTicket: 'This channel does not look like a ticket.',
-    closingTicket: 'Closing the ticket in 5 seconds...',
+    closingTicket: 'Closing the ticket in 5 seconds',
     newTicket: 'New Ticket',
     ticketIntro: 'Hi {user}, describe what you need here.',
     sendBestInfo: 'Please send these details right away if possible:',
@@ -790,11 +790,11 @@ client.on('interactionCreate', async (interaction) => {
 } // koniec if kanal-ustaw
 
 if (interaction.isChatInputCommand()) {
-   ...
+   
 } // zamykasz if
 
 if (interaction.isButton()) {
-   ...
+   
 } // zamykasz buttony
 
 } // 🔥 DOPIERO TU zamykasz try
