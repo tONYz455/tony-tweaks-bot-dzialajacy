@@ -957,6 +957,6 @@ setInterval(() => {
       },
     ],
   });
-}, 30000);
+}, 3000000);
 
 client.login(config.token);
