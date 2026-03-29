@@ -783,18 +783,18 @@ client.on('interactionCreate', async (interaction) => {
           });
         }
 
-        return safeReply(interaction, {
-          content: `✅ Ustawiono kanał na: **${newName}**`,
-          ephemeral: true,
-        });
-      }
+          return safeReply(interaction, {
+    content: `✅ Ustawiono kanał na: **${newName}**`,
+    ephemeral: true,
+  });
+} // koniec if kanal-ustaw
 
-    } // 🔥 WAŻNE zamknięcie
+} // koniec if (interaction.isChatInputCommand())
+} // ✅ TO DODAJ
 
-    // =====================
-    // BUTTONY
-    // =====================
-    if (interaction.isButton()) {
+// ----------------
+// BUTTONY
+if (interaction.isButton()) {
 
 		if (interaction.customId === 'feedback_open') {
   await interaction.reply({
