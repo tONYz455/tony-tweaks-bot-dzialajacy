@@ -789,12 +789,17 @@ client.on('interactionCreate', async (interaction) => {
   });
 } // koniec if kanal-ustaw
 
-} // koniec if (interaction.isChatInputCommand())
-} // ✅ TO DODAJ
+if (interaction.isChatInputCommand()) {
+   ...
+} // zamykasz if
 
-// ----------------
-// BUTTONY
 if (interaction.isButton()) {
+   ...
+} // zamykasz buttony
+
+} // 🔥 DOPIERO TU zamykasz try
+
+catch (error) {
 
 		if (interaction.customId === 'feedback_open') {
   await interaction.reply({
