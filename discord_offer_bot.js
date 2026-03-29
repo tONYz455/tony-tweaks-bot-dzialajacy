@@ -302,7 +302,7 @@ async function safeReply(interaction, payload) {
   }
   return interaction.reply(payload);
 }
-async function safeReply(interaction, payload) {
+
   if (interaction.replied || interaction.deferred) {
     return interaction.followUp(payload);
   }
