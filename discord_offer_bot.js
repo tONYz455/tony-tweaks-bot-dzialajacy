@@ -302,7 +302,25 @@ async function safeReply(interaction, payload) {
   }
   return interaction.reply(payload);
 }
+async function safeReply(interaction, payload) {
+  if (interaction.replied || interaction.deferred) {
+    return interaction.followUp(payload);
+  }
+  return interaction.reply(payload);
+}
 
+// 👇 DODAJ TO TU
+function getRandomPurchase() {
+  const fakePurchases = [
+    { user: "mike123", item: "FiveM Optimization", price: "$10" },
+    { user: "ghostx", item: "Citizen Pack", price: "$5" },
+    { user: "player99", item: "FPS Boost Config", price: "$7" },
+  ];
+
+  return fakePurchases[Math.floor(Math.random() * fakePurchases.length)];
+}
+
+// 👇 potem masz dalej swoje
 async function registerCommands() {
   const commands = [
     new SlashCommandBuilder()
@@ -365,6 +383,10 @@ async function registerCommands() {
           .setRequired(true)
       )
       .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageChannels),
+
+	  new SlashCommandBuilder()
+  .setName('recent')
+  .setDescription('Show recent purchases'),
 
     new SlashCommandBuilder()
       .setName('kanal-ustaw')
@@ -540,7 +562,29 @@ async function closeTicket(interaction, langKey = config.defaultLanguage) {
     }
   }, 5000);
 }
+function buildFeedbackEmbed() {
+  return {
+    title: '⭐ Customer Feedback',
+    description: 'Click below to leave your feedback and rating!',
+    color: 0x00ff99,
+  };
+}
 
+function buildFeedbackButtons() {
+  return [
+    {
+      type: 1,
+      components: [
+        {
+          type: 2,
+          label: 'Leave Feedback',
+          style: 3,
+          custom_id: 'feedback_open',
+        },
+      ],
+    },
+  ];
+}
 client.once('ready', async () => {
   console.log(`Bot zalogowany jako ${client.user.tag}`);
 
@@ -557,8 +601,20 @@ client.on('interactionCreate', async (interaction) => {
     // =====================
     // KOMENDY SLASH
     // =====================
-    if (interaction.isChatInputCommand()) {
+    if (interaction.isChatInputCommand()) 
+		
+		if (interaction.commandName === 'feedback') {
+  await interaction.channel.send({
+    embeds: [buildFeedbackEmbed()],
+    components: buildFeedbackButtons(),
+  });
 
+  return safeReply(interaction, {
+    content: 'Feedback panel sent!',
+    ephemeral: true,
+  });
+}
+	  
       // ===== OFERTA PL =====
       if (interaction.commandName === 'oferta') {
         if (!interaction.channel || !interaction.channel.isTextBased()) {
@@ -746,6 +802,70 @@ client.on('interactionCreate', async (interaction) => {
     // =====================
     if (interaction.isButton()) {
 
+		if (interaction.customId === 'feedback_open') {
+  await interaction.reply({
+    content: 'Select rating:',
+    components: [
+      {
+        type: 1,
+        components: [
+          { type: 2, label: '⭐', style: 1, custom_id: 'rate_1' },
+          { type: 2, label: '⭐⭐', style: 1, custom_id: 'rate_2' },
+          { type: 2, label: '⭐⭐⭐', style: 1, custom_id: 'rate_3' },
+          { type: 2, label: '⭐⭐⭐⭐', style: 1, custom_id: 'rate_4' },
+          { type: 2, label: '⭐⭐⭐⭐⭐', style: 3, custom_id: 'rate_5' },
+        ],
+      },
+    ],
+    ephemeral: true,
+  });
+}
+
+		if (interaction.customId.startsWith('rate_')) {
+  const rating = interaction.customId.split('_')[1];
+
+  await interaction.reply({
+    content: `You selected ${rating}⭐\nNow write your feedback!`,
+    ephemeral: true,
+  });
+
+  const filter = m => m.author.id === interaction.user.id;
+
+  const collector = interaction.channel.createMessageCollector({
+    filter,
+    max: 1,
+    time: 60000,
+  });
+
+  collector.on('collect', async (msg) => {
+    const feedbackChannel = interaction.guild.channels.cache.find(
+      c => c.name === 'feedback'
+    );
+
+    if (!feedbackChannel) return;
+
+    const stars = '⭐'.repeat(rating);
+
+    await feedbackChannel.send({
+      embeds: [
+        {
+          title: '⭐ New Feedback',
+          description: msg.content,
+          color: 0x00ff99,
+          fields: [
+            { name: 'Rating', value: stars },
+          ],
+          footer: {
+            text: `Author: ${interaction.user.tag}`,
+          },
+        },
+      ],
+    });
+
+    await msg.reply('✅ Feedback sent!');
+  });
+}
+		
       if (interaction.customId === 'send_offer_pl') {
         return safeReply(interaction, {
           embeds: [buildOfferEmbed(interaction.guild, 'pl')],
@@ -801,4 +921,42 @@ client.on('interactionCreate', async (interaction) => {
     }
   }
 });
+        if (interaction.commandName === 'recent') {
+  const purchase = getRandomPurchase();
+
+  await interaction.channel.send({
+    embeds: [
+      {
+        title: '🛒 Recent Purchase',
+        description: `**${purchase.user}** bought **${purchase.item}**`,
+        color: 0x00ff99,
+        fields: [
+          { name: 'Price', value: purchase.price },
+        ],
+      },
+    ],
+  });
+
+  return safeReply(interaction, {
+    content: 'Sent!',
+    ephemeral: true,
+  });
+}
+
+setInterval(() => {
+  const channel = client.channels.cache.find(c => c.name === 'general');
+  if (!channel) return;
+
+  const purchase = getRandomPurchase();
+
+  channel.send({
+    embeds: [
+      {
+        description: `💸 **${purchase.user}** just bought **${purchase.item}** (${purchase.price})`,
+        color: 0x00ff99,
+      },
+    ],
+  });
+}, 30000);
+
 client.login(config.token);
