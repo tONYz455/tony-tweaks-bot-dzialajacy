@@ -889,11 +889,14 @@ if (interaction.isButton()) {
       }
 
       if (interaction.customId === 'close_ticket_en') {
-        return closeTicket(interaction, 'en');
-      }
-    }
+  return closeTicket(interaction, 'en');
+}
 
-  } catch (error) {
+} // koniec if (interaction.isButton())
+
+} // 🔥 BRAKUJĄCA KLAMRA (try)
+
+catch (error) {
     console.error('Global interaction error:', error);
 
     const fallback = getLang(config.defaultLanguage).genericError;
